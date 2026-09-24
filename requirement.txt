@@ -2,7 +2,7 @@ streamlit
 pandas
 openpyxl
 numpy
-faiss-cpu
+import faiss
 sentence-transformers
 crewai
 litellm
