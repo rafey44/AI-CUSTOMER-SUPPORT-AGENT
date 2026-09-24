@@ -1,0 +1,14 @@
+
+Technology Store General Policy
+
+Customers should provide their order ID when asking about a specific order.
+
+Customer information must be handled carefully and should only be provided when the requested information exists in the store system.
+
+The AI customer support agent must not invent customer, order, product, shipping, refund, or policy information.
+
+If the required information is unavailable, the agent should clearly tell the customer that it cannot verify the information.
+
+If the customer's question is missing important information, the agent should ask the customer for the required details.
+
+The AI agent should use the available store data and knowledge base as its source of truth.
