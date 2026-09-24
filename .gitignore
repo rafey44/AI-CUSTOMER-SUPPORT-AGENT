@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.env
+.venv/
+customer_support.db
+.ipynb_checkpoints/
