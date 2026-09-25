@@ -146,6 +146,10 @@ def get_product(product_id):
 # RAG KNOWLEDGE BASE
 # =========================================================
 
+# =========================================================
+# RAG KNOWLEDGE BASE
+# =========================================================
+
 @st.cache_resource
 def load_rag():
 
@@ -187,7 +191,7 @@ def load_rag():
         convert_to_numpy=True
     ).astype("float32")
 
-   return chunks, embedding_model, embeddings
+    return chunks, embedding_model, embeddings
 
 
 chunks, embedding_model, embeddings = load_rag()
@@ -200,66 +204,24 @@ def search_knowledge_base(question, top_k=3):
         convert_to_numpy=True
     ).astype("float32")
 
-    # Calculate similarity between query and all document chunks
     scores = np.dot(
         embeddings,
         query_embedding[0]
     )
 
-    # Get the indexes of the most relevant chunks
     top_indices = np.argsort(scores)[-top_k:][::-1]
 
     results = []
 
     for i in top_indices:
-        results.append(chunks[i])
+
+        if i < len(chunks):
+            results.append(chunks[i])
 
     if not results:
         return "No relevant information found."
 
     return "\n\n".join(results)
-
-
-# =========================================================
-# CREWAI TOOLS
-# =========================================================
-
-@tool("check_customer")
-def customer_tool(customer_id: str) -> str:
-    """Check customer information using a customer ID."""
-
-    result = check_customer(customer_id)
-
-    if isinstance(result, str):
-        return result
-
-    return result.to_string(index=False)
-
-
-@tool("check_order")
-def order_tool(order_id: str) -> str:
-    """Check order information using an order ID."""
-
-    result = check_order(order_id)
-
-    if isinstance(result, str):
-        return result
-
-    return result.to_string(index=False)
-
-
-@tool("get_product")
-def product_tool(product_id: str) -> str:
-    """Get product information using a product ID."""
-
-    result = get_product(product_id)
-
-    if isinstance(result, str):
-        return result
-
-    return result.to_string(index=False)
-
-
 @tool("search_knowledge_base")
 def knowledge_base_tool(question: str) -> str:
     """Search store policies and knowledge base."""
