@@ -187,16 +187,10 @@ def load_rag():
         convert_to_numpy=True
     ).astype("float32")
 
-    index = faiss.IndexFlatL2(
-        embeddings.shape[1]
-    )
-
-    index.add(embeddings)
-
-    return chunks, embedding_model, index
+   return chunks, embedding_model, embeddings
 
 
-chunks, embedding_model, index = load_rag()
+chunks, embedding_model, embeddings = load_rag()
 
 
 def search_knowledge_base(question, top_k=3):
@@ -206,17 +200,19 @@ def search_knowledge_base(question, top_k=3):
         convert_to_numpy=True
     ).astype("float32")
 
-    distances, indices = index.search(
-        query_embedding,
-        top_k
+    # Calculate similarity between query and all document chunks
+    scores = np.dot(
+        embeddings,
+        query_embedding[0]
     )
+
+    # Get the indexes of the most relevant chunks
+    top_indices = np.argsort(scores)[-top_k:][::-1]
 
     results = []
 
-    for i in indices[0]:
-
-        if i < len(chunks):
-            results.append(chunks[i])
+    for i in top_indices:
+        results.append(chunks[i])
 
     if not results:
         return "No relevant information found."
