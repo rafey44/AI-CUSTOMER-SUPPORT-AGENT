@@ -7,6 +7,10 @@ import numpy as np
 from crewai import Agent, Task, Crew, Process, LLM
 from crewai.tools import tool
 
+import crewai.llms.cache as crewai_cache
+
+crewai_cache.mark_cache_breakpoint = lambda msg: msg
+
 
 # =========================================================
 # PAGE CONFIG
