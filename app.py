@@ -3,7 +3,6 @@ import sqlite3
 import streamlit as st
 import pandas as pd
 import numpy as np
-import faiss
 
 from sentence_transformers import SentenceTransformer
 from crewai import Agent, Task, Crew, Process, LLM
