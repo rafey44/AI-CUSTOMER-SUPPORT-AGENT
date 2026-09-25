@@ -2,5 +2,5 @@ streamlit
 pandas
 openpyxl
 numpy
-crewai
+crewai==1.15.22
 litellm
