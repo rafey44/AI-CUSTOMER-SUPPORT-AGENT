@@ -4,7 +4,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-from sentence_transformers import SentenceTransformer
 from crewai import Agent, Task, Crew, Process, LLM
 from crewai.tools import tool
 
