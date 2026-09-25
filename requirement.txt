@@ -2,6 +2,6 @@ streamlit
 pandas
 openpyxl
 numpy
-sentence-transformers
+scikit-learn
 crewai
 litellm
