@@ -4,9 +4,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-
 from crewai import Agent, Task, Crew, Process, LLM
 from crewai.tools import tool
 
@@ -220,40 +217,63 @@ def load_rag():
 
             chunks.extend(paragraphs)
 
-    vectorizer = TfidfVectorizer()
-
-    document_vectors = vectorizer.fit_transform(chunks)
-
-    return chunks, vectorizer, document_vectors
+    return chunks
 
 
-chunks, vectorizer, document_vectors = load_rag()
+chunks = load_rag()
 
 
 def search_knowledge_base(question, top_k=3):
 
-    query_vector = vectorizer.transform([question])
+    question_words = set(
+        question.lower().split()
+    )
 
-    similarities = cosine_similarity(
-        query_vector,
-        document_vectors
-    )[0]
+    scored_chunks = []
 
-    top_indices = similarities.argsort()[-top_k:][::-1]
+    for chunk in chunks:
 
-    results = []
+        chunk_words = set(
+            chunk.lower().split()
+        )
 
-    for i in top_indices:
+        score = len(
+            question_words.intersection(chunk_words)
+        )
 
-        if similarities[i] > 0:
-            results.append(chunks[i])
+        scored_chunks.append(
+            (score, chunk)
+        )
+
+    scored_chunks.sort(
+        key=lambda x: x[0],
+        reverse=True
+    )
+
+    results = [
+        chunk
+        for score, chunk in scored_chunks[:top_k]
+        if score > 0
+    ]
 
     if not results:
-
         return "No relevant information found."
 
     return "\n\n".join(results)
 
+
+# =========================================================
+# CREWAI RAG TOOL
+# =========================================================
+
+@tool("search_knowledge_base")
+def knowledge_base_tool(question: str) -> str:
+    """Search store policies and knowledge base."""
+
+    return search_knowledge_base(
+        question,
+        top_k=3
+    )
 
 # =========================================================
 # CREWAI RAG TOOL
