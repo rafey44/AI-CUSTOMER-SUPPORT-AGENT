@@ -4,6 +4,9 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
 from crewai import Agent, Task, Crew, Process, LLM
 from crewai.tools import tool
 
@@ -24,6 +27,7 @@ st.set_page_config(
 # =========================================================
 
 st.title("🤖 AI Customer Support Agent")
+
 st.write(
     "Ask questions about orders, customers, products, "
     "shipping, returns, and store policies."
@@ -141,8 +145,44 @@ def get_product(product_id):
 
 
 # =========================================================
-# RAG KNOWLEDGE BASE
+# CREWAI DATABASE TOOLS
 # =========================================================
+
+@tool("check_customer")
+def customer_tool(customer_id: str) -> str:
+    """Check customer information using customer ID."""
+
+    result = check_customer(customer_id)
+
+    if isinstance(result, str):
+        return result
+
+    return result.to_string(index=False)
+
+
+@tool("check_order")
+def order_tool(order_id: str) -> str:
+    """Check order information using order ID."""
+
+    result = check_order(order_id)
+
+    if isinstance(result, str):
+        return result
+
+    return result.to_string(index=False)
+
+
+@tool("get_product")
+def product_tool(product_id: str) -> str:
+    """Get product information using product ID."""
+
+    result = get_product(product_id)
+
+    if isinstance(result, str):
+        return result
+
+    return result.to_string(index=False)
+
 
 # =========================================================
 # RAG KNOWLEDGE BASE
@@ -180,46 +220,45 @@ def load_rag():
 
             chunks.extend(paragraphs)
 
-    embedding_model = SentenceTransformer(
-        "all-MiniLM-L6-v2"
-    )
+    vectorizer = TfidfVectorizer()
 
-    embeddings = embedding_model.encode(
-        chunks,
-        convert_to_numpy=True
-    ).astype("float32")
+    document_vectors = vectorizer.fit_transform(chunks)
 
-    return chunks, embedding_model, embeddings
+    return chunks, vectorizer, document_vectors
 
 
-chunks, embedding_model, embeddings = load_rag()
+chunks, vectorizer, document_vectors = load_rag()
 
 
 def search_knowledge_base(question, top_k=3):
 
-    query_embedding = embedding_model.encode(
-        [question],
-        convert_to_numpy=True
-    ).astype("float32")
+    query_vector = vectorizer.transform([question])
 
-    scores = np.dot(
-        embeddings,
-        query_embedding[0]
-    )
+    similarities = cosine_similarity(
+        query_vector,
+        document_vectors
+    )[0]
 
-    top_indices = np.argsort(scores)[-top_k:][::-1]
+    top_indices = similarities.argsort()[-top_k:][::-1]
 
     results = []
 
     for i in top_indices:
 
-        if i < len(chunks):
+        if similarities[i] > 0:
             results.append(chunks[i])
 
     if not results:
+
         return "No relevant information found."
 
     return "\n\n".join(results)
+
+
+# =========================================================
+# CREWAI RAG TOOL
+# =========================================================
+
 @tool("search_knowledge_base")
 def knowledge_base_tool(question: str) -> str:
     """Search store policies and knowledge base."""
@@ -368,6 +407,7 @@ if question:
     )
 
     with st.chat_message("user"):
+
         st.markdown(question)
 
     with st.chat_message("assistant"):
