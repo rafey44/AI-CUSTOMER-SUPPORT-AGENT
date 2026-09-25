@@ -2,6 +2,5 @@ streamlit
 pandas
 openpyxl
 numpy
-scikit-learn==1.5.2
 crewai
 litellm
